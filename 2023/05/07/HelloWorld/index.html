@@ -63,34 +63,6 @@
     </footer>
 
 
-  <section id="comment">
-    <button class="btn" id="loadcmts" onclick="cmts.load();">加载评论</button>
-    <div id="gitment"></div>
-    <script src='/js/gitment.browser.js'></script>
-    <link rel="stylesheet" href=''>
-    <script>
-      var cmts={
-        load:function cmts(){
-          var gitment = new Gitment({
-          
-            id: "HelloWorld",
-          
-            owner: "kongmingzi",
-            repo: "kongmingzi.github.io",
-            oauth: {
-              client_id: "4d867411831717e52a13",
-              client_secret: "d1689aafde9ad11e349b022bdccbbd7274470f22",
-            },
-          })
-          gitment.render('gitment');
-          var loadcmt = document.getElementById("loadcmts");
-          var imyourfather = loadcmt.parentNode;
-          imyourfather.removeChild(loadcmts)
-        }
-      }
-    </script>
-  </section>
-
 
 	<footer id="footer">
 	<div id="social">

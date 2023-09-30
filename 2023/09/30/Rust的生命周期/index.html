@@ -38,7 +38,7 @@
         </h2>
     </header>
 </article>
-<section id="post-body"><p>Rust对于内存回收的机制，采取了一种与众不同的方式，当然这也不是新的概念，即<strong>RAII（Resource Acquisition Is Initialization）</strong>的机制，这种机制起源于C++，但是在其它语言中都以不同的方式出现过，Rust不仅将RAII作为内存的主要回收手段，还加入了更加严格的编译时检查，以防止资源的不当使用，Rust的内存管理方式不同于C++的手动内存管理方式，也不同于Java虚拟机的垃圾回收机制进行内存的自动回收，对于Rust学习者，理解RAII机制是非常重要的，它可以帮助你理解Rust编译器需要依靠你进行生命周期声明标注。</p>
+<section id="post-body"><p>Rust对于内存回收的机制，采取了一种与众不同的方式，当然这也不是新的概念，即<strong>RAII（Resource Acquisition Is Initialization）</strong>的机制，这种机制起源于C++，但是在其它语言中都以不同的方式出现过，Rust不仅将RAII作为内存的主要回收手段，还加入了更加严格的编译时检查，以防止资源的不当使用，Rust的内存管理方式不同于C++的手动内存管理方式，也不同于Java虚拟机的垃圾回收机制进行内存的自动回收，对于Rust学习者，理解RAII机制是非常重要的，它可以帮助你理解Rust编译器需要依靠你进行生命周期声明标注。 </p>
 <p>Rust为了保证内存安全，采用了三种核心思想，分别是：所有权（ownership）、借用（borrowing）、生命周期（lifetimes）。阅读本篇文章时，希望读者已经对所有权和借用有所了解。相较于生命周期，这两个概念更为简单。如果你尚不了解，建议花费30分钟时间先进行学习。不过，如果你只想了解生命周期的内容，也是可以的。但我不会在本文中对所有权和借用进行深入解释。如果想了解这两个概念，可以参考以下资料：</p>
 <p>RAII 到底是什么？中文直译为”资源获取即初始化”，熟悉C++的朋友对这个概念或许并不陌生，RAII要求资源的有效期与持有资源的对象生命周期严格绑定，即由对象的构造函数完成资源的分配，同时由析构函数完成资源的释放。在这种要求下，只要对象能正确的析构就不会出现资源泄露问题。RAII的设计最开始是为了解决C++异常时资源释放的问题，为了不涉及任何语言的写法，以下代码我用一段伪代码展示：</p>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 未使用RAII，通过finally确保在发生异常时资源仍然能够被正常回收</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">test</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  Socket socket;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    socket = <span class="keyword">new</span> <span class="built_in">Sokcet</span>();</span><br><span class="line">    <span class="built_in">access</span>(socket);</span><br><span class="line">  &#125; finally &#123;</span><br><span class="line">    socket.<span class="built_in">close</span>();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用RAII</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">test</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="built_in">try</span> (Socket socket = <span class="keyword">new</span> <span class="built_in">Socket</span>()) &#123;</span><br><span class="line">    <span class="built_in">access</span>(socket);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -138,6 +138,7 @@
 <p>这个问题的出现就在于我们给编译器提示，这个可变引用会活的和实例一样长，所以导致我们没法再去使用一个不可变引用，根据借用规则：只能存在一个可变引用，且不能和不可变引用同时存在！  如果你不理解这个东西，有的时候你将会与编译器斗得头破血流的去换写法甚至直接放弃，所以不要慌，理解了之后自然可以从容面对。</p>
 <p>对了，有一个特殊的生命周期标识符 <code>&#39;static</code>以及<code>T: &#39;static</code>没有说明，前者指的是引用必须要获得与程序一样久，后者指的是T必须活的与程序一样久，绝大多数情况下你并不需要它们，如果你真的需要多思考下设计是否存在问题，当然有的时候你为了编译通过也不是不行！毕竟在Rust的标准库中也有少量使用。</p>
 <p>好了，本文结束，这篇文章几乎对Rust中生命周期的这些概念由浅入深的很清晰的进行了讲解，相信阅读过本文的读者对于这个概念都能够很好的掌握，如果你还不能掌握，我相信我这篇文章也为你打好了生命周期的基础可以帮助你去学习其它的资料。</p>
+<p>如果文中有不了解的地方，欢迎加VX与我探讨：<code>LunaSpring97</code><br>done</p>
 </section>
     
         
@@ -166,34 +167,6 @@
         </section>
     </footer>
 
-
-  <section id="comment">
-    <button class="btn" id="loadcmts" onclick="cmts.load();">加载评论</button>
-    <div id="gitment"></div>
-    <script src='/js/gitment.browser.js'></script>
-    <link rel="stylesheet" href=''>
-    <script>
-      var cmts={
-        load:function cmts(){
-          var gitment = new Gitment({
-          
-            id: "Rust的生命周期",
-          
-            owner: "kongmingzi",
-            repo: "kongmingzi.github.io",
-            oauth: {
-              client_id: "4d867411831717e52a13",
-              client_secret: "d1689aafde9ad11e349b022bdccbbd7274470f22",
-            },
-          })
-          gitment.render('gitment');
-          var loadcmt = document.getElementById("loadcmts");
-          var imyourfather = loadcmt.parentNode;
-          imyourfather.removeChild(loadcmts)
-        }
-      }
-    </script>
-  </section>
 
 
 	<footer id="footer">
